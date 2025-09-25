@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドット絵コンバーター</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>ドット絵コンバーター</h1>
+
+    <div class="container">
+        <!-- 操作パネル -->
+        <div class="controls">
+            <h2>① 画像をアップロード</h2>
+            <input type="file" id="imageLoader" accept="image/jpeg, image/png, image/svg+xml">
+
+            <h2>② ドット数を選択</h2>
+            <select id="pixelSize">
+                <option value="80">粗い (80px)</option>
+                <option value="120" selected>普通 (120px)</option>
+                <option value="160">細かい (160px)</option>
+                <option value="200">とても細かい (200px)</option>
+            </select>
+
+            <button id="convertBtn">③ 変換開始</button>
+        </div>
+
+        <!-- 画像表示エリア -->
+        <div class="canvas-area">
+            <div>
+                <h3>変換前</h3>
+                <canvas id="originalCanvas"></canvas>
+            </div>
+            <div>
+                <h3>変換後</h3>
+                <canvas id="pixelatedCanvas"></canvas>
+            </div>
+        </div>
+        
+        <!-- ダウンロードエリア -->
+        <div class="download-area">
+            <h2>④ ダウンロード</h2>
+            <select id="downloadFormat">
+                <option value="image/png">PNG</option>
+                <option value="image/jpeg">JPEG</option>
+            </select>
+            <button id="downloadBtn" disabled>ダウンロード</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
