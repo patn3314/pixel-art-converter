@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             originalImage.src = event.target.result;
         };
-        reader.readDataURL(file);
+        reader.readAsDataURL(file);
     }
     
     function updatePixelInputs(source) {
@@ -160,45 +160,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return imageData;
     }
 
-    // ★★★ 変更点：ピクセル化のアルゴリズムを刷新 ★★★
+    // ★★★ 修正箇所：この関数がクリーンであることを保証 ★★★
     function pixelate(sourceCanvas) {
         const pixelWidth = parseInt(pixelWidthInput.value);
         const pixelHeight = parseInt(pixelHeightInput.value);
         if (isNaN(pixelWidth) || isNaN(pixelHeight) || pixelWidth <= 0 || pixelHeight <= 0) return;
 
-        // 出力キャンバスのサイズを設定
+        // 1. 出力キャンバスのサイズを設定し、完全にクリアする
         pixelatedCanvas.width = originalCanvas.width;
         pixelatedCanvas.height = originalCanvas.height;
         pixelatedCtx.clearRect(0, 0, pixelatedCanvas.width, pixelatedCanvas.height);
 
-        // ソース画像と出力キャンバスの1ピクセルあたりのサイズを計算
+        // 2. 各ブロックのサイズを計算
         const sourceBlockWidth = sourceCanvas.width / pixelWidth;
         const sourceBlockHeight = sourceCanvas.height / pixelHeight;
         const destBlockWidth = pixelatedCanvas.width / pixelWidth;
         const destBlockHeight = pixelatedCanvas.height / pixelHeight;
 
-        // ソース画像から色を取得するためのコンテキスト
         const sourceCtx = sourceCanvas.getContext('2d');
 
-        // ピクセルごとに処理
+        // 3. 1ブロックずつ色をサンプリングし、矩形を描画する
         for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
-                // サンプリングする座標を計算 (各ブロックの中央)
                 const sourceX = Math.floor((x + 0.5) * sourceBlockWidth);
                 const sourceY = Math.floor((y + 0.5) * sourceBlockHeight);
 
-                // 1ピクセルの色データを取得
                 const pixelData = sourceCtx.getImageData(sourceX, sourceY, 1, 1).data;
-                const r = pixelData[0];
-                const g = pixelData[1];
-                const b = pixelData[2];
-                const a = pixelData[3] / 255;
+                const r = pixelData[0], g = pixelData[1], b = pixelData[2], a = pixelData[3] / 255;
 
-                // 取得した色で出力キャンバスに矩形を描画
                 pixelatedCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
                 pixelatedCtx.fillRect(x * destBlockWidth, y * destBlockHeight, destBlockWidth, destBlockHeight);
             }
         }
+        // これ以外の描画処理は行わない
     }
     
     function downloadImage() {
