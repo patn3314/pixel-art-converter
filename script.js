@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM要素の取得 ---
     const dropZone = document.getElementById('drop-zone');
-    const fileSelectBtn = document.getElementById('file-select-btn');
     const imageLoader = document.getElementById('imageLoader');
     const pixelWidthInput = document.getElementById('pixelWidth');
     const pixelHeightInput = document.getElementById('pixelHeight');
+    const aspectRatioLock = document.getElementById('aspectRatioLock'); // ★★★ 変更点 ★★★
     const convertBtn = document.getElementById('convertBtn');
     const originalCanvas = document.getElementById('originalCanvas');
     const pixelatedCanvas = document.getElementById('pixelatedCanvas');
@@ -15,52 +15,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const pixelatedCtx = pixelatedCanvas.getContext('2d');
 
     let originalImage = null;
+    let aspectRatio = 1; // ★★★ 変更点 ★★★
 
-    // --- ①-a ドラッグ＆ドロップによる画像アップロード ---
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('drag-over');
-    });
-
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
+    // --- ① 画像アップロード関連のイベントリスナー ---
+    dropZone.addEventListener('dragover', e => e.preventDefault());
+    dropZone.addEventListener('dragenter', () => dropZone.classList.add('drag-over'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
         e.preventDefault();
         dropZone.classList.remove('drag-over');
         const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
-        }
+        if (files.length > 0) handleFile(files[0]);
     });
-    
-    // dropZone自体をクリックしてもファイル選択できるようにする
     dropZone.addEventListener('click', () => imageLoader.click());
-    
-    // 「ファイルを選択」ボタンのクリックイベント
-    fileSelectBtn.addEventListener('click', () => imageLoader.click());
-
-    // --- ①-b ファイル選択ボタンによる画像アップロード ---
-    imageLoader.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
+    imageLoader.addEventListener('change', e => {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
     });
 
     // --- ファイル処理の共通関数 ---
     function handleFile(file) {
-        if (!file.type.startsWith('image/')) {
-            alert('画像ファイルを選択してください。');
-            return;
-        }
+        if (!file.type.startsWith('image/')) return alert('画像ファイルを選択してください。');
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = event => {
             originalImage = new Image();
             originalImage.onload = () => {
+                // ★★★ 変更点：縦横比を計算し、入力欄に反映 ★★★
+                aspectRatio = originalImage.width / originalImage.height;
+                pixelWidthInput.value = 64;
+                pixelHeightInput.value = Math.round(64 / aspectRatio);
+                
                 drawImageToCanvas(originalImage, originalCanvas, originalCtx);
-                // プレビュー表示されたら変換後キャンバスはクリアする
                 pixelatedCtx.clearRect(0, 0, pixelatedCanvas.width, pixelatedCanvas.height);
                 downloadBtn.disabled = true;
             };
@@ -69,12 +53,28 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
     }
     
-    // --- ③ 変換開始ボタンの機能 ---
-    convertBtn.addEventListener('click', () => {
-        if (!originalImage) {
-            alert('先に画像をアップロードしてください。');
-            return;
+    // --- ★★★ 変更点：縦横比を固定するための入力イベントリスナー ★★★
+    pixelWidthInput.addEventListener('input', () => {
+        if (aspectRatioLock.checked && aspectRatio) {
+            const newWidth = parseInt(pixelWidthInput.value);
+            if (!isNaN(newWidth) && newWidth > 0) {
+                pixelHeightInput.value = Math.round(newWidth / aspectRatio);
+            }
         }
+    });
+
+    pixelHeightInput.addEventListener('input', () => {
+        if (aspectRatioLock.checked && aspectRatio) {
+            const newHeight = parseInt(pixelHeightInput.value);
+            if (!isNaN(newHeight) && newHeight > 0) {
+                pixelWidthInput.value = Math.round(newHeight * aspectRatio);
+            }
+        }
+    });
+    
+    // --- 変換開始ボタンの機能 ---
+    convertBtn.addEventListener('click', () => {
+        if (!originalImage) return alert('先に画像をアップロードしてください。');
         pixelate();
     });
 
@@ -84,57 +84,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const pixelHeight = parseInt(pixelHeightInput.value);
 
         if (isNaN(pixelWidth) || isNaN(pixelHeight) || pixelWidth <= 0 || pixelHeight <= 0) {
-            alert('有効な縦横ピクセル数を入力してください。');
-            return;
+            return alert('有効な縦横ピクセル数を入力してください。');
         }
 
-        // 変換後キャンバスのサイズを変換前と同じに設定
         pixelatedCanvas.width = originalCanvas.width;
         pixelatedCanvas.height = originalCanvas.height;
 
-        // ドット絵風にするための設定（アンチエイリアスを無効化）
         pixelatedCtx.imageSmoothingEnabled = false;
-
-        // 1. 指定されたピクセル数で、一旦小さく画像を描画
         pixelatedCtx.drawImage(originalImage, 0, 0, pixelWidth, pixelHeight);
-
-        // 2. 小さく描画した画像を、元のキャンバスサイズに引き伸ばして描画
         pixelatedCtx.drawImage(
-            pixelatedCanvas,
-            0, 0, pixelWidth, pixelHeight,
+            pixelatedCanvas, 0, 0, pixelWidth, pixelHeight,
             0, 0, pixelatedCanvas.width, pixelatedCanvas.height
         );
 
         downloadBtn.disabled = false;
     }
 
-    // --- ④ ダウンロード機能 ---
+    // --- ダウンロード機能 ---
     downloadBtn.addEventListener('click', () => {
         const format = downloadFormatSelect.value;
         const extension = format.split('/')[1];
         const link = document.createElement('a');
-        link.href = pixelatedCanvas.toDataURL(format, 1.0); // JPEGの場合の品質を1.0に指定
+        link.href = pixelatedCanvas.toDataURL(format, 1.0);
         link.download = `pixel-art.${extension}`;
         link.click();
     });
 
     // --- ヘルパー関数：画像をキャンバスに描画 ---
     function drawImageToCanvas(image, canvas, context) {
-        const parentWidth = canvas.parentElement.clientWidth;
-        const maxWidth = parentWidth > 350 ? 350 : parentWidth; // PCとスマホで最大幅を調整
-
+        const parentWidth = canvas.parentElement.clientWidth - 32; // padding分を考慮
+        
         let width = image.width;
         let height = image.height;
 
-        if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
+        if (width > parentWidth) {
+            height *= parentWidth / width;
+            width = parentWidth;
         }
 
         canvas.width = width;
         canvas.height = height;
 
-        context.clearRect(0, 0, width, height); // 描画前にクリア
+        context.clearRect(0, 0, width, height);
         context.drawImage(image, 0, 0, width, height);
     }
 });

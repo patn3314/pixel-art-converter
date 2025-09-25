@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ドット絵コンバーター</title>
+    <title>新・ドット絵コンバーター</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
 
     <div class="container">
         <header>
-            <h1>ドット絵コンバーター</h1>
+            <h1>新・ドット絵コンバーター</h1>
             <p>画像をアップロードして、好きなサイズのドット絵に変換しよう！</p>
         </header>
 
@@ -31,13 +31,20 @@
             <!-- ② ピクセル数指定エリア -->
             <section class="panel">
                 <h2>2. 解像度を指定</h2>
-                <div class="pixel-inputs">
-                    <label for="pixelWidth">横</label>
-                    <input type="number" id="pixelWidth" value="64" min="1">
-                    <span>×</span>
-                    <label for="pixelHeight">縦</label>
-                    <input type="number" id="pixelHeight" value="64" min="1">
-                    <span>ピクセル</span>
+                <div class="pixel-controls">
+                    <div class="pixel-inputs">
+                        <label for="pixelWidth">横</label>
+                        <input type="number" id="pixelWidth" value="64" min="1">
+                        <span>×</span>
+                        <label for="pixelHeight">縦</label>
+                        <input type="number" id="pixelHeight" value="64" min="1">
+                        <span>ピクセル</span>
+                    </div>
+                    <!-- ★★★ 変更点：縦横比固定チェックボックスを追加 ★★★ -->
+                    <div class="aspect-ratio-lock">
+                        <input type="checkbox" id="aspectRatioLock" checked>
+                        <label for="aspectRatioLock">縦横比を固定</label>
+                    </div>
                 </div>
             </section>
             
@@ -76,5 +83,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>

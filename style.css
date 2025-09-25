@@ -7,35 +7,61 @@
     --shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
+/* ★★★ 変更点：基本的なレイアウト崩れを防ぐ設定 ★★★ */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* ★★★ 変更点：縦方向のはみ出しを防ぐためのFlexboxレイアウト ★★★ */
+html {
+    height: 100%;
+}
 body {
     font-family: 'Noto Sans JP', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     margin: 0;
-    padding: 20px;
     display: flex;
     justify-content: center;
+    min-height: 100vh;
 }
-
 .container {
     width: 100%;
     max-width: 900px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+main {
+    flex-grow: 1; /* フッターを下に押し出す */
 }
 
 header, footer {
     text-align: center;
-    margin-bottom: 2rem;
+    flex-shrink: 0; /* 縮まないようにする */
+}
+header {
+    margin-bottom: 1.5rem;
+}
+footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9em;
+    color: #777;
 }
 
 h1 {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 5vw, 2rem); /* 画面サイズに応じてフォントサイズを調整 */
     color: var(--primary-color);
+    margin: 0 0 0.5rem 0;
 }
 
 h2 {
     font-size: 1.2rem;
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 0.5rem;
+    margin-top: 0;
     margin-bottom: 1rem;
 }
 
@@ -50,7 +76,7 @@ h2 {
 #drop-zone {
     border: 2px dashed var(--border-color);
     border-radius: 8px;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
@@ -75,14 +101,30 @@ h2 {
     background-color: #0056b3;
 }
 
+/* ★★★ 変更点：ピクセル指定と縦横比固定のレイアウト ★★★ */
+.pixel-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
 .pixel-inputs {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
+.aspect-ratio-lock {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+.aspect-ratio-lock label {
+    cursor: pointer;
+}
 
 .pixel-inputs input[type="number"] {
-    width: 80px;
+    width: 70px;
     padding: 0.5rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -108,12 +150,13 @@ h2 {
 
 .image-comparison {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
 .image-box {
     flex: 1;
+    min-width: 0; /* Flexアイテムの縮小問題を解決 */
     background-color: var(--panel-background);
     border-radius: 8px;
     padding: 1rem;
@@ -154,13 +197,13 @@ select, #downloadBtn {
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-    body {
-        padding: 10px;
+    .container {
+        padding: 0.5rem;
     }
     .image-comparison {
         flex-direction: column;
     }
-    .pixel-inputs {
-        flex-wrap: wrap;
+    .panel {
+        padding: 1rem;
     }
 }
