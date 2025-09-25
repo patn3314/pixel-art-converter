@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     colorSlider.addEventListener('input', updateColorSlider);
     outlineSlider.addEventListener('input', updateOutlineSlider);
     convertBtn.addEventListener('click', processImage);
+    downloadBtn.addEventListener('click', downloadImage);
 
     // --- 初期化処理 ---
     updateColorSlider();
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             originalImage.src = event.target.result;
         };
-        reader.readAsDataURL(file);
+        reader.readDataURL(file);
     }
     
     function updatePixelInputs(source) {
@@ -71,9 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const width = parseInt(pixelWidthInput.value);
         const height = parseInt(pixelHeightInput.value);
 
-        if (source === 'width' && !isNaN(width)) {
+        if (source === 'width' && !isNaN(width) && width > 0) {
             pixelHeightInput.value = Math.round(width / aspectRatio);
-        } else if (source === 'height' && !isNaN(height)) {
+        } else if (source === 'height' && !isNaN(height) && height > 0) {
             pixelWidthInput.value = Math.round(height * aspectRatio);
         }
     }
@@ -94,9 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.classList.remove('hidden');
         convertBtn.disabled = true;
         
-        // UIが更新されるように、重い処理を少し遅延させる
         setTimeout(() => {
-            // 1. 一時的なCanvasにフィルター適用前の元画像を描画
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = originalImage.width;
@@ -104,12 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
             tempCtx.drawImage(originalImage, 0, 0);
             let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
-            // 2. 画質調整フィルターを適用
             imageData = applyColorReduction(imageData);
             imageData = applyOutlines(imageData);
             tempCtx.putImageData(imageData, 0, 0);
 
-            // 3. フィルター適用後の画像を元にピクセル化
             pixelate(tempCanvas);
 
             loading.classList.add('hidden');
@@ -118,79 +115,99 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10);
     }
 
-    // ★★★ 新機能：減色処理 ★★★
     function applyColorReduction(imageData) {
         const level = parseInt(colorSlider.value);
-        if (level >= 6) return imageData; // 無制限の場合は処理しない
+        if (level >= 6) return imageData;
         
         const colorCount = [4, 8, 16, 32, 64][level - 1];
-        const factor = 256 / colorCount;
+        const factor = 255 / (colorCount - 1);
         const data = imageData.data;
 
         for (let i = 0; i < data.length; i += 4) {
-            data[i] = Math.round(data[i] / factor) * factor;     // Red
-            data[i + 1] = Math.round(data[i + 1] / factor) * factor; // Green
-            data[i + 2] = Math.round(data[i + 2] / factor) * factor; // Blue
+            data[i] = Math.round(data[i] / factor) * factor;
+            data[i + 1] = Math.round(data[i + 1] / factor) * factor;
+            data[i + 2] = Math.round(data[i + 2] / factor) * factor;
         }
         return imageData;
     }
     
-    // ★★★ 新機能：輪郭線検出処理 (ソーベルフィルター) ★★★
     function applyOutlines(imageData) {
         const level = parseInt(outlineSlider.value);
-        if (level === 0) return imageData; // なしの場合は処理しない
+        if (level === 0) return imageData;
 
         const threshold = [0, 60, 40, 20][level];
         const { data, width, height } = imageData;
         const grayData = new Uint8ClampedArray(width * height);
-        const edgeData = new Uint8ClampedArray(width * height);
-
-        // グレースケール化
         for (let i = 0, j = 0; i < data.length; i += 4, j++) {
             grayData[j] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
         }
-
-        // ソーベルフィルター
+        
+        const edgeData = new Uint8ClampedArray(width * height);
         for (let y = 1; y < height - 1; y++) {
             for (let x = 1; x < width - 1; x++) {
                 const i = y * width + x;
-                const gx = -grayData[i - 1 - width] - 2 * grayData[i - 1] - grayData[i - 1 + width] +
-                            grayData[i + 1 - width] + 2 * grayData[i + 1] + grayData[i + 1 + width];
-                const gy = -grayData[i - 1 - width] - 2 * grayData[i - width] - grayData[i + 1 - width] +
-                            grayData[i - 1 + width] + 2 * grayData[i + width] + grayData[i + 1 + width];
+                const gx = -grayData[i-1-width] - 2*grayData[i-1] - grayData[i-1+width] + grayData[i+1-width] + 2*grayData[i+1] + grayData[i+1+width];
+                const gy = -grayData[i-1-width] - 2*grayData[i-width] - grayData[i+1-width] + grayData[i-1+width] + 2*grayData[i+width] + grayData[i+1+width];
                 edgeData[i] = Math.sqrt(gx * gx + gy * gy);
             }
         }
 
-        // 輪郭を元の画像に合成
         for (let i = 0, j = 0; i < data.length; i += 4, j++) {
             if (edgeData[j] > threshold) {
-                data[i] = 0; data[i + 1] = 0; data[i + 2] = 0; // 輪郭を黒にする
+                data[i] = 0; data[i + 1] = 0; data[i + 2] = 0;
             }
         }
         return imageData;
     }
 
-    function pixelate(sourceImage) {
+    // ★★★ 変更点：ピクセル化のアルゴリズムを刷新 ★★★
+    function pixelate(sourceCanvas) {
         const pixelWidth = parseInt(pixelWidthInput.value);
         const pixelHeight = parseInt(pixelHeightInput.value);
-        if (isNaN(pixelWidth) || isNaN(pixelHeight)) return;
+        if (isNaN(pixelWidth) || isNaN(pixelHeight) || pixelWidth <= 0 || pixelHeight <= 0) return;
 
+        // 出力キャンバスのサイズを設定
         pixelatedCanvas.width = originalCanvas.width;
         pixelatedCanvas.height = originalCanvas.height;
-        pixelatedCtx.imageSmoothingEnabled = false;
-        
-        pixelatedCtx.drawImage(sourceImage, 0, 0, pixelWidth, pixelHeight);
-        pixelatedCtx.drawImage(pixelatedCanvas, 0, 0, pixelWidth, pixelHeight, 0, 0, pixelatedCanvas.width, pixelatedCanvas.height);
+        pixelatedCtx.clearRect(0, 0, pixelatedCanvas.width, pixelatedCanvas.height);
+
+        // ソース画像と出力キャンバスの1ピクセルあたりのサイズを計算
+        const sourceBlockWidth = sourceCanvas.width / pixelWidth;
+        const sourceBlockHeight = sourceCanvas.height / pixelHeight;
+        const destBlockWidth = pixelatedCanvas.width / pixelWidth;
+        const destBlockHeight = pixelatedCanvas.height / pixelHeight;
+
+        // ソース画像から色を取得するためのコンテキスト
+        const sourceCtx = sourceCanvas.getContext('2d');
+
+        // ピクセルごとに処理
+        for (let y = 0; y < pixelHeight; y++) {
+            for (let x = 0; x < pixelWidth; x++) {
+                // サンプリングする座標を計算 (各ブロックの中央)
+                const sourceX = Math.floor((x + 0.5) * sourceBlockWidth);
+                const sourceY = Math.floor((y + 0.5) * sourceBlockHeight);
+
+                // 1ピクセルの色データを取得
+                const pixelData = sourceCtx.getImageData(sourceX, sourceY, 1, 1).data;
+                const r = pixelData[0];
+                const g = pixelData[1];
+                const b = pixelData[2];
+                const a = pixelData[3] / 255;
+
+                // 取得した色で出力キャンバスに矩形を描画
+                pixelatedCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+                pixelatedCtx.fillRect(x * destBlockWidth, y * destBlockHeight, destBlockWidth, destBlockHeight);
+            }
+        }
     }
     
-    downloadBtn.addEventListener('click', () => {
+    function downloadImage() {
         const format = downloadFormatSelect.value;
         const link = document.createElement('a');
         link.href = pixelatedCanvas.toDataURL(format, 1.0);
-        link.download = `game-art.${format.split('/')[1]}`;
+        link.download = `dot-art.${format.split('/')[1]}`;
         link.click();
-    });
+    }
 
     function drawImageToCanvas(image, canvas, context) {
         const parentWidth = canvas.parentElement.clientWidth - 32;
