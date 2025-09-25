@@ -6,16 +6,8 @@
     --border-color: #e0e0e0;
     --shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-
-/* ★★★ 変更点：基本的なレイアウト崩れを防ぐ設定 ★★★ */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-/* ★★★ 変更点：縦方向のはみ出しを防ぐためのFlexboxレイアウト ★★★ */
-html {
-    height: 100%;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; }
 body {
     font-family: 'Noto Sans JP', sans-serif;
     background-color: var(--background-color);
@@ -32,178 +24,71 @@ body {
     display: flex;
     flex-direction: column;
 }
-main {
-    flex-grow: 1; /* フッターを下に押し出す */
-}
-
-header, footer {
-    text-align: center;
-    flex-shrink: 0; /* 縮まないようにする */
-}
-header {
-    margin-bottom: 1.5rem;
-}
+main { flex-grow: 1; }
+header { text-align: center; margin-bottom: 1.5rem; flex-shrink: 0; }
 footer {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.9em;
-    color: #777;
+    text-align: center; margin-top: 2rem; padding-top: 1rem;
+    border-top: 1px solid var(--border-color); font-size: 0.9em; color: #777; flex-shrink: 0;
 }
-
-h1 {
-    font-size: clamp(1.5rem, 5vw, 2rem); /* 画面サイズに応じてフォントサイズを調整 */
-    color: var(--primary-color);
-    margin: 0 0 0.5rem 0;
-}
-
+h1 { font-size: clamp(1.5rem, 5vw, 2rem); color: var(--primary-color); margin: 0 0 0.5rem 0; }
 h2 {
-    font-size: 1.2rem;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.5rem;
-    margin-top: 0;
-    margin-bottom: 1rem;
+    font-size: 1.2rem; border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem; margin-top: 0; margin-bottom: 1rem;
 }
-
 .panel {
-    background-color: var(--panel-background);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow);
+    background-color: var(--panel-background); border-radius: 8px;
+    padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow);
 }
-
 #drop-zone {
-    border: 2px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    text-align: center;
-    cursor: pointer;
+    border: 2px dashed var(--border-color); border-radius: 8px;
+    padding: 1.5rem; text-align: center; cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
 }
-
-#drop-zone.drag-over {
-    background-color: #e9f5ff;
-    border-color: var(--primary-color);
-}
-
+#drop-zone.drag-over { background-color: #e9f5ff; border-color: var(--primary-color); }
 #file-select-btn {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s;
+    background-color: var(--primary-color); color: white; padding: 0.5rem 1rem;
+    border-radius: 4px; border: none; cursor: pointer; font-size: 1rem; transition: background-color 0.2s;
 }
-#file-select-btn:hover {
-    background-color: #0056b3;
-}
-
-/* ★★★ 変更点：ピクセル指定と縦横比固定のレイアウト ★★★ */
-.pixel-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-}
-.pixel-inputs {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.aspect-ratio-lock {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    cursor: pointer;
-}
-.aspect-ratio-lock label {
-    cursor: pointer;
-}
-
+#file-select-btn:hover { background-color: #0056b3; }
+.pixel-controls, .aspect-ratio-lock { display: flex; align-items: center; }
+.pixel-controls { flex-wrap: wrap; gap: 1rem; }
+.pixel-inputs { gap: 0.5rem; }
+.aspect-ratio-lock { gap: 0.3rem; cursor: pointer; }
+.aspect-ratio-lock label { cursor: pointer; }
 .pixel-inputs input[type="number"] {
-    width: 70px;
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
+    width: 70px; padding: 0.5rem; border: 1px solid var(--border-color);
+    border-radius: 4px; font-size: 1rem;
 }
+/* ★★★ 新しいスタイル ★★★ */
+.slider-control { margin-bottom: 1rem; }
+.slider-control label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+.slider-control input[type="range"] { width: 100%; cursor: pointer; }
+.slider-control small { color: #777; font-size: 0.9em; }
 
 #convertBtn {
-    width: 100%;
-    padding: 1rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 1.5rem;
-    transition: background-color 0.2s;
+    width: 100%; padding: 1rem; font-size: 1.2rem; font-weight: bold;
+    background-color: #28a745; color: white; border: none; border-radius: 8px;
+    cursor: pointer; margin-bottom: 0.5rem; transition: background-color 0.2s;
 }
-#convertBtn:hover {
-    background-color: #218838;
-}
+#convertBtn:hover { background-color: #218838; }
+#loading { text-align: center; padding: 0.5rem; color: var(--primary-color); }
+.hidden { display: none; }
 
-.image-comparison {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
+.image-comparison { display: flex; gap: 1rem; margin: 1.5rem 0; }
 .image-box {
-    flex: 1;
-    min-width: 0; /* Flexアイテムの縮小問題を解決 */
-    background-color: var(--panel-background);
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: var(--shadow);
-    text-align: center;
+    flex: 1; min-width: 0; background-color: var(--panel-background);
+    border-radius: 8px; padding: 1rem; box-shadow: var(--shadow); text-align: center;
 }
-
-canvas {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid var(--border-color);
-    background-color: #fafafa;
-}
-
-.download-controls {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
+canvas { max-width: 100%; height: auto; border: 1px solid var(--border-color); background-color: #fafafa; }
+.download-controls { display: flex; align-items: center; gap: 1rem; }
 select, #downloadBtn {
-    padding: 0.75rem;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
-    font-size: 1rem;
+    padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); font-size: 1rem;
 }
+#downloadBtn { background-color: var(--primary-color); color: white; cursor: pointer; border: none; }
+#downloadBtn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-#downloadBtn {
-    background-color: var(--primary-color);
-    color: white;
-    cursor: pointer;
-    border: none;
-}
-#downloadBtn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-/* レスポンシブ対応 */
 @media (max-width: 768px) {
-    .container {
-        padding: 0.5rem;
-    }
-    .image-comparison {
-        flex-direction: column;
-    }
-    .panel {
-        padding: 1rem;
-    }
+    .container { padding: 0.5rem; }
+    .image-comparison { flex-direction: column; }
+    .panel { padding: 1rem; }
 }

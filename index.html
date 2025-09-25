@@ -14,11 +14,11 @@
     <div class="container">
         <header>
             <h1>ドット絵コンバーター</h1>
-            <p>画像をアップロードして、好きなサイズのドット絵に変換しよう！</p>
+            <p>画像をアップロードして、好きなスタイルのゲーム風画像に変換しよう！</p>
         </header>
 
         <main>
-            <!-- ① 画像アップロードエリア (マルチモーダル対応) -->
+            <!-- 1. 画像を選択 -->
             <section class="panel">
                 <h2>1. 画像を選択</h2>
                 <div id="drop-zone">
@@ -28,19 +28,18 @@
                 <input type="file" id="imageLoader" accept="image/jpeg, image/png, image/svg+xml" hidden>
             </section>
 
-            <!-- ② ピクセル数指定エリア -->
+            <!-- 2. 解像度を指定 -->
             <section class="panel">
                 <h2>2. 解像度を指定</h2>
                 <div class="pixel-controls">
                     <div class="pixel-inputs">
                         <label for="pixelWidth">横</label>
-                        <input type="number" id="pixelWidth" value="64" min="1">
+                        <input type="number" id="pixelWidth" value="128" min="1">
                         <span>×</span>
                         <label for="pixelHeight">縦</label>
-                        <input type="number" id="pixelHeight" value="64" min="1">
+                        <input type="number" id="pixelHeight" value="128" min="1">
                         <span>ピクセル</span>
                     </div>
-                    <!-- ★★★ 変更点：縦横比固定チェックボックスを追加 ★★★ -->
                     <div class="aspect-ratio-lock">
                         <input type="checkbox" id="aspectRatioLock" checked>
                         <label for="aspectRatioLock">縦横比を固定</label>
@@ -48,8 +47,24 @@
                 </div>
             </section>
             
-            <!-- ③ 変換実行ボタン -->
+            <!-- ★★★ 新機能：3. 画質調整 ★★★ -->
+            <section class="panel">
+                <h2>3. 画質調整 (オプション)</h2>
+                <div class="slider-control">
+                    <label for="colorSlider">使用色数: <span id="colorValue">16</span>色</label>
+                    <input type="range" id="colorSlider" min="1" max="6" value="3">
+                    <small>色数を減らすとレトロな雰囲気になります</small>
+                </div>
+                <div class="slider-control">
+                    <label for="outlineSlider">輪郭線の強さ: <span id="outlineValue">なし</span></label>
+                    <input type="range" id="outlineSlider" min="0" max="3" value="0">
+                    <small>輪郭を強調してイラスト風にします</small>
+                </div>
+            </section>
+
+            <!-- 変換実行ボタン -->
             <button id="convertBtn">変換する</button>
+            <div id="loading" class="hidden">処理中...</div>
 
             <!-- 変換前後の画像比較エリア -->
             <div class="image-comparison">
@@ -63,9 +78,9 @@
                 </div>
             </div>
 
-            <!-- ④ ダウンロードエリア -->
+            <!-- 4. ダウンロード -->
             <section class="panel download-panel">
-                <h2>3. ダウンロード</h2>
+                <h2>4. ダウンロード</h2>
                 <div class="download-controls">
                     <select id="downloadFormat">
                         <option value="image/png">PNG</option>
@@ -77,11 +92,10 @@
         </main>
         
         <footer>
-            <p>&copy; 2025 Your Name. All Rights Reserved.</p>
+            <p>&copy; 2025 ドット絵コンバーター. All Rights Reserved.</p>
         </footer>
     </div>
 
     <script src="script.js"></script>
 </body>
-
 </html>
