@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return imageData;
     }
 
+    // ★★★ 修正箇所：ピクセル描画の計算方法を精密化 ★★★
     function pixelate(sourceCanvas) {
         const pixelWidth = parseInt(pixelWidthInput.value);
         const pixelHeight = parseInt(pixelHeightInput.value);
@@ -172,22 +173,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const sourceBlockWidth = sourceCanvas.width / pixelWidth;
         const sourceBlockHeight = sourceCanvas.height / pixelHeight;
         
-        // ★★★ 修正点：計算結果を切り上げることで、ピクセル間の隙間をなくす ★★★
-        const destBlockWidth = Math.ceil(pixelatedCanvas.width / pixelWidth);
-        const destBlockHeight = Math.ceil(pixelatedCanvas.height / pixelHeight);
-
         const sourceCtx = sourceCanvas.getContext('2d');
 
         for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
+                // サンプリングする座標
                 const sourceX = Math.floor((x + 0.5) * sourceBlockWidth);
                 const sourceY = Math.floor((y + 0.5) * sourceBlockHeight);
 
+                // ピクセルの色を取得
                 const pixelData = sourceCtx.getImageData(sourceX, sourceY, 1, 1).data;
                 const r = pixelData[0], g = pixelData[1], b = pixelData[2], a = pixelData[3] / 255;
-
                 pixelatedCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
-                pixelatedCtx.fillRect(x * destBlockWidth, y * destBlockHeight, destBlockWidth, destBlockHeight);
+
+                // ピクセルの描画位置とサイズを精密に計算
+                const startX = Math.round((x * pixelatedCanvas.width) / pixelWidth);
+                const startY = Math.round((y * pixelatedCanvas.height) / pixelHeight);
+                const endX = Math.round(((x + 1) * pixelatedCanvas.width) / pixelWidth);
+                const endY = Math.round(((y + 1) * pixelatedCanvas.height) / pixelHeight);
+                const blockWidth = endX - startX;
+                const blockHeight = endY - startY;
+
+                pixelatedCtx.fillRect(startX, startY, blockWidth, blockHeight);
             }
         }
     }
