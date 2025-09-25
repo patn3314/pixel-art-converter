@@ -160,26 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return imageData;
     }
 
-    // ★★★ 修正箇所：この関数がクリーンであることを保証 ★★★
     function pixelate(sourceCanvas) {
         const pixelWidth = parseInt(pixelWidthInput.value);
         const pixelHeight = parseInt(pixelHeightInput.value);
         if (isNaN(pixelWidth) || isNaN(pixelHeight) || pixelWidth <= 0 || pixelHeight <= 0) return;
 
-        // 1. 出力キャンバスのサイズを設定し、完全にクリアする
         pixelatedCanvas.width = originalCanvas.width;
         pixelatedCanvas.height = originalCanvas.height;
         pixelatedCtx.clearRect(0, 0, pixelatedCanvas.width, pixelatedCanvas.height);
 
-        // 2. 各ブロックのサイズを計算
         const sourceBlockWidth = sourceCanvas.width / pixelWidth;
         const sourceBlockHeight = sourceCanvas.height / pixelHeight;
-        const destBlockWidth = pixelatedCanvas.width / pixelWidth;
-        const destBlockHeight = pixelatedCanvas.height / pixelHeight;
+        
+        // ★★★ 修正点：計算結果を切り上げることで、ピクセル間の隙間をなくす ★★★
+        const destBlockWidth = Math.ceil(pixelatedCanvas.width / pixelWidth);
+        const destBlockHeight = Math.ceil(pixelatedCanvas.height / pixelHeight);
 
         const sourceCtx = sourceCanvas.getContext('2d');
 
-        // 3. 1ブロックずつ色をサンプリングし、矩形を描画する
         for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
                 const sourceX = Math.floor((x + 0.5) * sourceBlockWidth);
@@ -192,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 pixelatedCtx.fillRect(x * destBlockWidth, y * destBlockHeight, destBlockWidth, destBlockHeight);
             }
         }
-        // これ以外の描画処理は行わない
     }
     
     function downloadImage() {
